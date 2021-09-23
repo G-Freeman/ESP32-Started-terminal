@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+		<link rel='icon' href='data:'>
+		<style>
+			html {
+				height: 100%;
+				background: black;
+				color: white;
+				font-family: Helvetica;
+				//pointer-events: none;
+				user-select: none;
+			}
+			body {
+				height: 100%;
+				margin: 0;
+			}
+			.io {
+			    height: 100%;
+			    display: flex;
+			    flex-direction: column;
+			    justify-content: end;
+			}
+            .v {
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: end;
+				padding: 10px;
+			}
+			p {
+				margin: 0;
+			}
+			.e {
+				color: #ffbaba;
+			}
+			.s {
+				color: #aaffaa;
+			}
+			.ur {
+				color: #ffe3aa;
+			}
+
+			.iw {
+                height: 36px;
+				min-height: 36px;
+                background: brown;
+                margin-bottom: 32px;
+				display: flex;
+			}
+			.i {
+                width: 100%;
+                background: #13100c;
+                outline: none;
+                color: #ff7b3c;
+                border: 0;
+                font-size: 16px;
+                padding: 1px 10px;
+                border-top: 1px solid #565656;
+                border-bottom: 1px solid #565656;
+			}
+			.send {
+                height: 100%;
+				color: #a59595;
+                background: hsl(75deg 14% 11%);
+				border: 1px solid #565656;
+                white-space: nowrap;
+                border-right: 0;
+                box-sizing: border-box;
+                display: flex;
+                align-items: center;
+                padding: 0 10px;
+			}
+			.send:hover {
+				cursor: pointer;
+			}
+            .send:active {
+                background: #000000!important;
+            }
+		</style>
+		<script>
+			window.onload = function() {
+				terminal.init();
+			};
+
+			class app {
+				static i=0;
+				static clrs = { send: 0 };
+				static iter=3;
+
+				static anims = {
+					hBlink: null,
+					btnFlow: null
+				};
+
+				static isAnim(bool){
+					if(bool) {
+						this.anims.hBlink = setInterval(()=>{
+							document.getElementById('head').style.color = ['#8a298a','#528641','#96502f'][this.i];
+							this.i++;
+							if(this.i===(this.iter)) this.i=0;
+						},500);
+						this.anims.btnFlow = setInterval(()=>{
+							document.getElementById('send_bnt').style.background = 'hsl('+this.clrs.send+'deg 14% 11%)';
+							this.clrs.send+=1;
+							if(this.clrs.send>=360) this.clrs.send=0;
+						},50);
+					} else {
+						if(this.anims.hBlink) {
+							clearInterval(this.anims.hBlink);
+							this.anims.hBlink = null;
+						}
+						if(this.anims.btnFlow) {
+							clearInterval(this.anims.btnFlow);
+							this.anims.btnFlow = null;
+						}
+					}
+				}
+
+			}
+			class input {
+				static onSend(){
+					if(document.getElementById('send_input').value!=='') {
+						terminal.sendLn(document.getElementById('send_input').value);
+						document.getElementById('send_input').value = "";
+						document.getElementById('send_input').focus();
+					}
+				}
+				static onKeyDown(e){
+					if(e.keyCode === 13){
+						e.preventDefault();
+						this.onSend();
+					}
+				}
+			}
+			class terminal {
+				static wrap;
+				static maxMsgs = 128;
+
+				static init() {
+					this.wrap = document.getElementById('terminal');
+					for(const i of this.wrap.children) {
+						this.add(i);
+					}
+				}
+				static sendLn(msg) {
+					let el = document.createElement("p");
+					el.appendChild(document.createTextNode(msg));
+					this.add(el);
+				}
+				static limiter() {
+					if(this.wrap.children.length>this.maxMsgs) {
+						this.rem(0);
+					}
+				}
+				static rem(i) {
+					if(i<this.wrap.children.length) {
+						const first = this.wrap.children[0];
+						this.wrap.removeChild(first);
+					}
+				}
+				static add(el) {
+					if(typeof el==='object') {
+						if(this.wrap.contains(el)) {
+
+						} else{
+							this.wrap.appendChild(el);
+						}
+						this.limiter();
+					}
+				}
+			}
+		</script>
+	</head>
+
+	<body>
+		<div class='io'>
+			<div class='v' id="terminal">
+				<p id="head">ESP32 ACCESS POINT</p>
+				<br>
+				<p>1. Reboot device</p>
+				<p>2. Remote terminal</p>
+				<p>3. Hard reset</p>
+				<br>
+				<div class='h'>
+					<span class='s'>3.</span>
+					<span class='ur'>Get remote access</span>
+				</div>
+				<br>
+				<div class='h'>
+					<span>Login:</span>
+					<span>admin</span>
+				</div>
+				<div class='h'>
+					<span>Password:</span>
+					<span>*****</span>
+				</div>
+				<br>
+				<p class='e'>Invalid password or login []</p>
+				<br>
+				<div class='h'>
+					<span>Login:</span>
+					<span>admin</span>
+				</div>
+				<div class='h'>
+					<span>Password:</span>
+					<span>*****</span>
+				</div>
+				<br>
+				<p class='s'>Access granted</p>
+				<br>
+			</div>
+			<div class="iw">
+				<input id="send_input"
+					class='i'
+					type='text'
+					placeholder="command..."
+					onkeydown="input.onKeyDown(event);"
+				>
+				<div id="send_bnt"
+					 class="send"
+					 onclick="input.onSend();"
+				>Send</div>
+			</div>
+		</div>
+	</body>
+
